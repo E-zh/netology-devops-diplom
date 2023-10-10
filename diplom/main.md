@@ -40,8 +40,17 @@ egor@netology-2004:~/diplom$
 * [outputs.tf](terraform/01/outputs.tf)
 * [variables.tf](terraform/01/variables.tf)
 
-Переходим в каталог, и выполняем `terraform init`:  
-![](/diplom/images/01-tf-init.jpg)  
+Переходим в каталог `terraform/01`, и выполняем `terraform init`:  
+![](/diplom/images/01/01-tf-init.jpg)  
 Далее, подготовил workspaces. Использую альтернативный вариант: использую один workspace, назвав его `stage`:  
-![](/diplom/images/02-tf-create-workspace.jpg)  
-Видим, что инициализация прошла успешно, выполняю `export TF_VAR_yc_token=$(yc iam create-token)`, чтобы не указывать OAuth-токен в файлах конфигурации, и запускаем команду `terraform apply`:  
+![](/diplom/images/01/02-tf-create-workspace.jpg)  
+Видим, что инициализация прошла успешно, выполняю `export TF_VAR_yc_token=$(yc iam create-token)`, чтобы не указывать OAuth-токен в файлах конфигурации, и запускаем команду `terraform apply`, весь лог приводить не буду, сделал скрин после запроса terraform и ввода `yes`:  
+![](/diplom/images/01/03-tf-apply.jpg)  
+
+Для выполнения следующего шага я подготовил файлы:
+* [main.tf](/diplom/terraform/02/main.tf)
+* [outputs.tf](/diplom/terraform/02/outputs.tf)
+* [variables.tf](/diplom/terraform/02/variables.tf)
+
+Далее переходим в каталог `terraform/01`. Перед началом инициализации, я сохранил в переменные SECRET_KEY и ACCESS_KEY ключи, полученные ранее (чтобы явно не показывать их в файлах конфигурации).  
+Выполняю инициализацию следующей командой: `terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"`:
