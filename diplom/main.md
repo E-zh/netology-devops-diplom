@@ -52,5 +52,34 @@ egor@netology-2004:~/diplom$
 * [outputs.tf](/diplom/terraform/02/outputs.tf)
 * [variables.tf](/diplom/terraform/02/variables.tf)
 
-Далее переходим в каталог `terraform/01`. Перед началом инициализации, я сохранил в переменные SECRET_KEY и ACCESS_KEY ключи, полученные ранее (чтобы явно не показывать их в файлах конфигурации).  
-Выполняю инициализацию следующей командой: `terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"`:
+Далее переходим в каталог `terraform/02`. Перед началом инициализации, я сохранил в переменные SECRET_KEY и ACCESS_KEY ключи, полученные ранее (чтобы явно не показывать их в файлах конфигурации) и выполнил `export TF_VAR_yc_token=$(yc iam create-token)`.  
+Выполняю инициализацию следующей командой: `terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"`:  
+![](/diplom/images/01/04-step-2-init.jpg)  
+Выполнил `terraform apply -auto-approve`:  
+![](/diplom/images/01/05-step-2-apply.jpg)  
+Зашел в панель управления YC в Object Storage, и увидел файл состояний terraform:  
+![](/diplom/images/01/06-yc-os-dashboard.jpg)  
+
+Когда у нас готовы каталоги, сервисный аккаунт, Object Storage и хранилище состояний terraform, приступаю к развертыванию облачной инфраструктуры.  
+Для этого шага я подготовил следующие файлы конфигурации:
+* [main.tf](/diplom/terraform/03/instance/main.tf)
+* [1-provider.tf](/diplom/terraform/03/1-provider.tf)
+* [2_network.tf](/diplom/terraform/03/2_network.tf)
+* [3_private_subnets.tf](/diplom/terraform/03/3_private_subnets.tf)
+* [4_vms.tf](/diplom/terraform/03/4_vms.tf)
+* [outputs.tf](/diplom/terraform/03/outputs.tf)
+* [variables.tf](/diplom/terraform/03/variables.tf)
+
+Как и в предыдущих шагах, переходим в каталог `terraform/03`, переменные SECRET_KEY и ACCESS_KEY у меня уже существуют, как и TF_VAR_yc_token. 
+Для выполнения задания "Установка и настройка CI/CD" решено использовать TeamCity, поэтому в конфигурацию сразу добавлены две ВМ `teamcity-server` и `teamcity-agent`.
+Поэтому сразу выполняю инициализацию командой: `terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"`:  
+![](/diplom/images/01/07-step-3-init.jpg)  
+И выбираю нужный мне workspace:  
+![](/diplom/images/01/08-step-3-workspace.jpg)  
+Выполняю `terraform apply -auto-approve`, весь лог не вместится на скрине, привожу конец лога:  
+![](/diplom/images/01/09-step-3-tf-apply.jpg)  
+Все необходимые ресурсы созданы, это можно увидеть в дашборде Yandex.Cloud:  
+![](/diplom/images/01/10-step-3-resources.jpg)  
+И непосредственно 5 виртуальных машин (остановил их в целях уменьшения потребления ресурсов до завтра):  
+![](/diplom/images/01/11-step-3-vms.jpg)  
+Таким образом, с помощью terraform развернута облачная инфраструктура, которая легко может быть создана или удалена с помощью команд terraform `apply` и `destroy` без каких-либо дополнительных действий.  
