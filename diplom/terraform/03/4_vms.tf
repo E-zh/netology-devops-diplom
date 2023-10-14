@@ -4,7 +4,6 @@ module "vm-for-each" {
   memory         = local.memory[each.key]
   boot_disk_size = local.boot_disk_size[each.key]
   boot_disk_type = "network-hdd"
-  users          = "egor"
   for_each       = toset(["master", "node-1", "node-2", "teamcity-server", "teamcity-agent"])
   instance_name  = each.key
   image_family   = local.image_family[each.key]
@@ -42,9 +41,9 @@ locals {
   }
 
   image_family = {
-    master          = "ubuntu-2004-lts"
-    node-1          = "ubuntu-2004-lts"
-    node-2          = "ubuntu-2004-lts"
+    master          = "ubuntu-2204-lts"
+    node-1          = "ubuntu-2204-lts"
+    node-2          = "ubuntu-2204-lts"
     teamcity-server = "container-optimized-image"
     teamcity-agent  = "container-optimized-image"
   }

@@ -1,0 +1,34 @@
+all:
+  hosts:
+    master:
+      ansible_host: {{ internal_ip["master"] }}
+      ip: {{ internal_ip["master"] }}
+      access_ip: {{ internal_ip["master"] }}
+      ansible_user: {{ ansible_user }}
+    node-1:
+      ansible_host: {{ internal_ip["node-1"] }}
+      ip: {{ internal_ip["node-1"] }}
+      access_ip: {{ internal_ip['node-1'] }}
+      ansible_user: {{ ansible_user }}
+    node-2:
+      ansible_host: {{ internal_ip["node-2"] }}
+      ip: {{ internal_ip["node-2"] }}
+      access_ip: {{ internal_ip["node-2"] }}
+      ansible_user: {{ ansible_user }}
+  children:
+    kube_control_plane:
+      hosts:
+        master:
+    kube_node:
+      hosts:
+        node-1:
+        node-2:
+    etcd:
+      hosts:
+        master:
+    k8s_cluster:
+      children:
+        kube_control_plane:
+        kube_node:
+    calico_rr:
+      hosts: {}

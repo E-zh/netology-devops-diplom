@@ -62,7 +62,7 @@ resource "yandex_compute_instance" "instance" {
   }
 
   metadata = {
-    ssh-keys = "${var.users}:${file("~/.ssh/id_rsa.pub")}"
+    user-data = file("meta.txt")
   }
 
   allow_stopping_for_update = true

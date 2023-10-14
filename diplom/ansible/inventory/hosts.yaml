@@ -1,0 +1,21 @@
+---
+all:
+  hosts:
+    master:
+      ansible_host: "{{ public_ip['master'] }}"
+    node-1:
+      ansible_host: "{{ public_ip['node-1'] }}"
+    node-2:
+      ansible_host: "{{ public_ip['node-2'] }}"
+  children:
+    k8n_cluster:
+      hosts:
+        master:
+        node-1:
+        node-2:
+    k8n_control_plane:
+      hosts:
+        master:
+  vars:
+    ansible_connection_type: ssh
+    ansible_user: "{{ ansible_user }}"
