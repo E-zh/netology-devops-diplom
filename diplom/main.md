@@ -10,13 +10,7 @@
 1. [Создание облачной инфраструктуры](#cloud_infrastructure)
 2. [Создание Kubernetes кластера](#create_kubernetes_cluster)
 3. [Создание тестового приложения](#create_test_application)
-
-
-
-
-
-
-
+4. [Подготовка системы мониторинга и деплой приложения](#monitoring_deploy_apps)
 
 
 ## <a name="cloud_infrastructure">1. Создание облачной инфраструктуры</a>
@@ -152,4 +146,137 @@ P.S. возникла проблема, при которой я не мог п�
 В этом задании я создал простое web-приложение, собрал образ docker и разместил его в DockerHub.
 
 
+## <a name="monitoring_deploy_apps">4. Подготовка системы мониторинга и деплой приложения</a>
 
+---
+
+Разворачивать систему мониторинга в кластере я буду с помощью пакета [Kube-Prometheus](https://github.com/prometheus-operator/kube-prometheus).  
+Для начала потребовалось установить Golang - `sudo apt install golang`. Установленная версия `go` - go1.13.8  
+Далее создал каталог `kube-prometheus`, перешел в него и выполнил ` go install -a github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb` для установки пакета `jsonnet-bundler`:  
+![](/diplom/images/04/01-install-jsonnet-bundler.jpg)  
+Далее выполнил `jb init`, и `jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheus@main`:  
+![](/diplom/images/04/02-jb-installkube-prometheus.jpg)  
+Далее скачал файлы `example.jsonnet` и `build.sh`:  
+![](/diplom/images/04/03-download-jsonnet-example.jpg)  
+Файл `build.sh` сделал исполняемым выполнив `chmod u+x build.sh`, и обновил зависимости для kube-prometheus, выполнив `jb update`:  
+![](/diplom/images/04/04-jb-update.jpg)  
+Перед компиляцией дополнительно установил пакеты `gojsontoyaml` и `jsonnet`:  
+![](/diplom/images/04/05-install-packages.jpg)  
+И выполнил команду `./build.sh sys-monitoring.jsonnet`:  
+![](/diplom/images/04/06-run-build-sh.jpg)  
+
+В результате в папке [manifests](/diplom/kube-prometheus/manifests) получаем набор манифестов для разворачивания системы мониторинга.
+
+Теперь переходим в папку `kube-prometheus` и создадим пространство имен и CRD (Custom Resource Definition), выполнив команду `kubectl apply --server-side -f manifests/setup`:  
+![](/diplom/images/04/07-kubectl-server-side.jpg)  
+И далее запускаем непосредственно развертывание системы мониторинга командой `kubectl apply -f manifests`, лог получился большой, и к сожадению сделать скриншот не получится:  
+```shell
+egor@netology-2004:~/diploma/kube-prometheus$ kubectl apply -f manifests
+alertmanager.monitoring.coreos.com/main created
+networkpolicy.networking.k8s.io/alertmanager-main created
+poddisruptionbudget.policy/alertmanager-main created
+prometheusrule.monitoring.coreos.com/alertmanager-main-rules created
+secret/alertmanager-main created
+service/alertmanager-main created
+serviceaccount/alertmanager-main created
+servicemonitor.monitoring.coreos.com/alertmanager-main created
+clusterrole.rbac.authorization.k8s.io/blackbox-exporter created
+clusterrolebinding.rbac.authorization.k8s.io/blackbox-exporter created
+configmap/blackbox-exporter-configuration created
+deployment.apps/blackbox-exporter created
+networkpolicy.networking.k8s.io/blackbox-exporter created
+service/blackbox-exporter created
+serviceaccount/blackbox-exporter created
+servicemonitor.monitoring.coreos.com/blackbox-exporter created
+secret/grafana-config created
+secret/grafana-datasources created
+configmap/grafana-dashboard-alertmanager-overview created
+configmap/grafana-dashboard-apiserver created
+configmap/grafana-dashboard-cluster-total created
+configmap/grafana-dashboard-controller-manager created
+configmap/grafana-dashboard-grafana-overview created
+configmap/grafana-dashboard-k8s-resources-cluster created
+configmap/grafana-dashboard-k8s-resources-multicluster created
+configmap/grafana-dashboard-k8s-resources-namespace created
+configmap/grafana-dashboard-k8s-resources-node created
+configmap/grafana-dashboard-k8s-resources-pod created
+configmap/grafana-dashboard-k8s-resources-workload created
+configmap/grafana-dashboard-k8s-resources-workloads-namespace created
+configmap/grafana-dashboard-kubelet created
+configmap/grafana-dashboard-namespace-by-pod created
+configmap/grafana-dashboard-namespace-by-workload created
+configmap/grafana-dashboard-node-cluster-rsrc-use created
+configmap/grafana-dashboard-node-rsrc-use created
+configmap/grafana-dashboard-nodes-darwin created
+configmap/grafana-dashboard-nodes created
+configmap/grafana-dashboard-persistentvolumesusage created
+configmap/grafana-dashboard-pod-total created
+configmap/grafana-dashboard-prometheus-remote-write created
+configmap/grafana-dashboard-prometheus created
+configmap/grafana-dashboard-proxy created
+configmap/grafana-dashboard-scheduler created
+configmap/grafana-dashboard-workload-total created
+configmap/grafana-dashboards created
+deployment.apps/grafana created
+networkpolicy.networking.k8s.io/grafana created
+prometheusrule.monitoring.coreos.com/grafana-rules created
+service/grafana created
+serviceaccount/grafana created
+servicemonitor.monitoring.coreos.com/grafana created
+prometheusrule.monitoring.coreos.com/kube-prometheus-rules created
+clusterrole.rbac.authorization.k8s.io/kube-state-metrics created
+clusterrolebinding.rbac.authorization.k8s.io/kube-state-metrics created
+deployment.apps/kube-state-metrics created
+networkpolicy.networking.k8s.io/kube-state-metrics created
+prometheusrule.monitoring.coreos.com/kube-state-metrics-rules created
+service/kube-state-metrics created
+serviceaccount/kube-state-metrics created
+servicemonitor.monitoring.coreos.com/kube-state-metrics created
+prometheusrule.monitoring.coreos.com/kubernetes-monitoring-rules created
+servicemonitor.monitoring.coreos.com/kube-apiserver created
+servicemonitor.monitoring.coreos.com/coredns created
+servicemonitor.monitoring.coreos.com/kube-controller-manager created
+servicemonitor.monitoring.coreos.com/kube-scheduler created
+servicemonitor.monitoring.coreos.com/kubelet created
+clusterrole.rbac.authorization.k8s.io/node-exporter created
+clusterrolebinding.rbac.authorization.k8s.io/node-exporter created
+daemonset.apps/node-exporter created
+networkpolicy.networking.k8s.io/node-exporter created
+prometheusrule.monitoring.coreos.com/node-exporter-rules created
+service/node-exporter created
+serviceaccount/node-exporter created
+servicemonitor.monitoring.coreos.com/node-exporter created
+apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
+clusterrole.rbac.authorization.k8s.io/prometheus-adapter created
+clusterrole.rbac.authorization.k8s.io/system:aggregated-metrics-reader created
+clusterrolebinding.rbac.authorization.k8s.io/prometheus-adapter created
+clusterrolebinding.rbac.authorization.k8s.io/resource-metrics:system:auth-delegator created
+clusterrole.rbac.authorization.k8s.io/resource-metrics-server-resources created
+configmap/adapter-config created
+deployment.apps/prometheus-adapter created
+networkpolicy.networking.k8s.io/prometheus-adapter created
+poddisruptionbudget.policy/prometheus-adapter created
+rolebinding.rbac.authorization.k8s.io/resource-metrics-auth-reader created
+service/prometheus-adapter created
+serviceaccount/prometheus-adapter created
+servicemonitor.monitoring.coreos.com/prometheus-adapter created
+clusterrole.rbac.authorization.k8s.io/prometheus-k8s created
+clusterrolebinding.rbac.authorization.k8s.io/prometheus-k8s created
+networkpolicy.networking.k8s.io/prometheus-k8s created
+prometheusrule.monitoring.coreos.com/prometheus-operator-rules created
+servicemonitor.monitoring.coreos.com/prometheus-operator created
+poddisruptionbudget.policy/prometheus-k8s created
+prometheus.monitoring.coreos.com/k8s created
+prometheusrule.monitoring.coreos.com/prometheus-k8s-prometheus-rules created
+rolebinding.rbac.authorization.k8s.io/prometheus-k8s-config created
+rolebinding.rbac.authorization.k8s.io/prometheus-k8s created
+rolebinding.rbac.authorization.k8s.io/prometheus-k8s created
+rolebinding.rbac.authorization.k8s.io/prometheus-k8s created
+role.rbac.authorization.k8s.io/prometheus-k8s-config created
+role.rbac.authorization.k8s.io/prometheus-k8s created
+role.rbac.authorization.k8s.io/prometheus-k8s created
+role.rbac.authorization.k8s.io/prometheus-k8s created
+service/prometheus-k8s created
+serviceaccount/prometheus-k8s created
+servicemonitor.monitoring.coreos.com/prometheus-k8s created
+```
