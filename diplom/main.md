@@ -169,7 +169,7 @@ P.S. возникла проблема, при которой я не мог п�
 
 Теперь переходим в папку `kube-prometheus` и создадим пространство имен и CRD (Custom Resource Definition), выполнив команду `kubectl apply --server-side -f manifests/setup`:  
 ![](/diplom/images/04/07-kubectl-server-side.jpg)  
-И далее запускаем непосредственно развертывание системы мониторинга командой `kubectl apply -f manifests`, лог получился большой, и к сожадению сделать скриншот не получится:  
+И далее запускаем непосредственно развертывание системы мониторинга командой `kubectl apply -f manifests`, лог получился большой, и к сожалению сделать скриншот не получится:  
 ```shell
 egor@netology-2004:~/diploma/kube-prometheus$ kubectl apply -f manifests
 alertmanager.monitoring.coreos.com/main created
@@ -279,4 +279,20 @@ role.rbac.authorization.k8s.io/prometheus-k8s created
 service/prometheus-k8s created
 serviceaccount/prometheus-k8s created
 servicemonitor.monitoring.coreos.com/prometheus-k8s created
-```
+```  
+Проверяем систему следующими командами:  
+![](/diplom/images/04/08-kubectl-get-alls.jpg)  
+Теперь нужно предоставить доступ к Grafana снаружи, через интернет. Для этого я использую NodePort.  
+В созданном каталоге [kube-prometheus-node-port](/diplom/kube-prometheus-node-port) я подготовил следующие файлы:  
+* [grafana-network-policy.yaml](/diplom/kube-prometheus-node-port/grafana-network-policy.yaml)
+* [node-port-grafana.yaml](/diplom/kube-prometheus-node-port/node-port-grafana.yaml)
+
+И применяем их. Смотрим и видим что у нас появился сервис `nodeport-grafana` с типом `NodePort`:  
+![](/diplom/images/04/09-nodeport-running.jpg)  
+Т.к. я прописал `nodePort: 30300`, пробуем перейти по адресам нод + порт 30300:  
+![](/diplom/images/04/10-grafana-web-access.jpg)  
+Как видно, Grafana доступна по адресам обеих нод на порту `30300`, привожу также адреса нод, т.к. я уже выключал ВМ и адреса изменились:  
+![](/diplom/images/04/11-nodes-address.jpg)  
+
+
+Далее я разверну наше простое приложение в кластере Kubernetes.
