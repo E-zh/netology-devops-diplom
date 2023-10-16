@@ -289,7 +289,7 @@ servicemonitor.monitoring.coreos.com/prometheus-k8s created
 
 И применяем их. Смотрим и видим что у нас появился сервис `nodeport-grafana` с типом `NodePort`:  
 ![](/diplom/images/04/09-nodeport-running.jpg)  
-Т.к. я прописал `nodePort: 30300`, пробуем перейти по адресам нод + порт 30300:  
+Т.к. я прописал `nodePort: 30300`, пробуем перейти по адресам нод + порт 30300, соответственно `84.201.160.70:30300` и `51.250.38.95:30300`:  
 ![](/diplom/images/04/10-grafana-web-access.jpg)  
 Как видно, Grafana доступна по адресам обеих нод на порту `30300`, привожу также адреса нод, т.к. я уже выключал ВМ и адреса изменились:  
 ![](/diplom/images/04/11-nodes-address.jpg)  
