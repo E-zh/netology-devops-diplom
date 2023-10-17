@@ -18,13 +18,37 @@
 ---
 Задание я буду выполнять в Ubuntu server 20.04.4 TLS, которая находится на виртуальной машине VirtualBox хостовой машины с Windows 11.  
 Облачную инфраструктуру я подготовлю с помощью Terraform.  
-Для начала проверил и обновил terraform до актуальной версии 1.6.0:
+Для начала проверил и обновил terraform до актуальной версии 1.5.5:
 ```shell
 egor@netology-2004:~/diplom$ terraform version
-Terraform v1.6.0
+Terraform v1.5.5
 on linux_amd64
+
+Your version of Terraform is out of date! The latest version
+is 1.6.1. You can update by downloading from https://www.terraform.io/downloads.html
 egor@netology-2004:~/diplom$
 ```
+P.S. Перейти на версию 1.5.5 пришлось по причине появления ошибки на версии 1.6.0, которую я так и не смог победить:
+```shell
+Initializing the backend...
+╷
+│ Warning: Deprecated Parameter
+│
+│   on main.tf line 11, in terraform:
+│   11:     endpoint                    = "storage.yandexcloud.net"
+│
+│ The parameter "endpoint" is deprecated. Use parameter "endpoints.s3" instead.
+╵
+
+╷
+│ Error: Invalid Value
+│
+│   on main.tf line 11, in terraform:
+│   11:     endpoint                    = "storage.yandexcloud.net"
+│
+│ The value must be a valid URL containing at least a scheme and hostname. Had "storage.yandexcloud.net"
+```
+
 Поскольку в YC я уже имею аккаунт и каталог `default`, я создам новый каталог `netology-folder` для выполнения дипломной работы. 
 Условно, выполнение первого задания можно разделить на следующие пункты:  
 * Создание нового каталога в Яндекс.Облаке
@@ -295,4 +319,36 @@ servicemonitor.monitoring.coreos.com/prometheus-k8s created
 ![](/diplom/images/04/11-nodes-address.jpg)  
 
 
-Далее я разверну наше простое приложение в кластере Kubernetes.
+Далее я разверну наше простое приложение в кластере Kubernetes.  
+Для этого я буду использовать Helm, чтобы в дальнейшем иметь возможность шаблонизировать манифесты и организовать установку приложений из репозитория.  
+Командой `helm create web-application` создал заготовку и удалил из нее все лишние папки и файлы.  
+Конечный вариант после необходимых настроек расположен в папке [helm/web-application](/diplom/helm/web-application).  
+
+Выполняю установку приложения командой `helm install web-application web-application`:  
+![](/diplom/images/04/12-helm-install-web-app.jpg)  
+Приложение развернуто в нашем кластере и с помощью NodePort доступно по адресу любой ноды кластера на порту 30100:  
+![](/diplom/images/04/13-running-app-in-cluster.jpg)  
+Также привожу скрин запроса списка приложений установленных Helm, и список deployments, pods и svc через kubectl:  
+![](/diplom/images/04/14-installed-apps.jpg)  
+
+Далее я разместил приложение в репозитории Helm, чтобы иметь возможность доступа к нему в любой момент.  
+
+Сборка архива `helm package web-application -d charts` и генерация индексного файла `helm repo index charts`:  
+![](/diplom/images/04/15-create-helm-chart.jpg)  
+
+Содержимое папки [helm](/diplom/helm) залил в [отдельный репозиторий на github](https://github.com/E-zh/netology-yc-helm).
+Создал [специальную страницу чарта(https://e-zh.github.io/netology-yc-helm/)] на github, и создал репозиторий на [ArtifactHUB](https://artifacthub.io/)
+
+Для получения статуса `Verified Publisher` в репозитории ArtifactHUB, необходимо создать файл [artifacthub-repo.yml](/diplom/helm/charts/artifacthub-repo.yml),
+и выполнить обновление версии образа Docker на `2.0`, пересобрать образ и отправить в репозиторий, а также обновить номера версии в файлах чарта Helm и сгенерировать новый индексный файл и сам чарт:  
+![](/diplom/images/04/16-update-version-package.jpg)  
+И пушим все изменения в репозиторий github:  
+![](/diplom/images/04/17-push-to-github.jpg)  
+Теперь, когда наше веб-приложение добавлено в репозиторий, мы получаем возможность устанавливать его в кластер автоматизированным способом еще на этапе сборки кластера.
+Для этого в папку [ansible/playbooks](/diplom/ansible/playbooks) добавим файл [deploy-web-application.yaml](/diplom/ansible/playbooks/deploy-web-application.yaml) и укажем
+в файле [site.yaml](/diplom/ansible/site.yaml) - `- import_playbook: playbooks/deploy-web-application.yaml`.  
+
+Проверяем, выполнив команду в папке Ansible - `ansible-playbook -i inventory/hosts.yaml playbooks/deploy-web-application.yaml`, после чего переходим в браузере по любому адресу ноды, и видим что наше приложение обновлено - версия 2.0:  
+![](/diplom/images/04/18-update-web-app.jpg)  
+
+Таким образом, на этом шаге я развернул систему мониторинга, предоставив доступ снаружи к Grafana, а также развернул тестовое приложение с помощью Helm, и создал репозиторий, для того чтобы иметь к нему доступ в любое время. 
