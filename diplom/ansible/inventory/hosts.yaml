@@ -7,6 +7,10 @@ all:
       ansible_host: "{{ public_ip['node-1'] }}"
     node-2:
       ansible_host: "{{ public_ip['node-2'] }}"
+    teamcity-server:
+      ansible_host: "{{ public_ip['teamcity-server'] }}"
+    teamcity-agent:
+      ansible_host: "{{ public_ip['teamcity-agent'] }}"
   children:
     k8n_cluster:
       hosts:

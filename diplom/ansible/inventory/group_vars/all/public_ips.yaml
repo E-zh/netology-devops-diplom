@@ -3,3 +3,5 @@ public_ip:
   master: 51.250.6.236
   node-1: 158.160.69.120
   node-2: 51.250.40.160
+  teamcity-server: 158.160.118.247
+  teamcity-agent: 158.160.106.96

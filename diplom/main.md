@@ -7,10 +7,11 @@
 ---
 
 ## Содержание:
-1. [Создание облачной инфраструктуры](#cloud_infrastructure)
-2. [Создание Kubernetes кластера](#create_kubernetes_cluster)
-3. [Создание тестового приложения](#create_test_application)
-4. [Подготовка системы мониторинга и деплой приложения](#monitoring_deploy_apps)
+### 1. [Создание облачной инфраструктуры](#cloud_infrastructure)
+### 2. [Создание Kubernetes кластера](#create_kubernetes_cluster)
+### 3. [Создание тестового приложения](#create_test_application)
+### 4. [Подготовка системы мониторинга и деплой приложения](#monitoring_deploy_apps)
+### 5. [Установка и настройка CI/CD](#ci_cd)
 
 
 ## <a name="cloud_infrastructure">1. Создание облачной инфраструктуры</a>
@@ -348,7 +349,36 @@ servicemonitor.monitoring.coreos.com/prometheus-k8s created
 Для этого в папку [ansible/playbooks](/diplom/ansible/playbooks) добавим файл [deploy-web-application.yaml](/diplom/ansible/playbooks/deploy-web-application.yaml) и укажем
 в файле [site.yaml](/diplom/ansible/site.yaml) - `- import_playbook: playbooks/deploy-web-application.yaml`.  
 
+Через какое-то время репозиторий в ArtifactHUB приобретает статус `Verified Publisher`:  
+![](/diplom/images/04/19-verified-publisher-status.jpg)  
+
 Проверяем, выполнив команду в папке Ansible - `ansible-playbook -i inventory/hosts.yaml playbooks/deploy-web-application.yaml`, после чего переходим в браузере по любому адресу ноды, и видим что наше приложение обновлено - версия 2.0:  
 ![](/diplom/images/04/18-update-web-app.jpg)  
 
 Таким образом, на этом шаге я развернул систему мониторинга, предоставив доступ снаружи к Grafana, а также развернул тестовое приложение с помощью Helm, и создал репозиторий, для того чтобы иметь к нему доступ в любое время. 
+
+
+## <a name="ci_cd">5. Установка и настройка CI/CD</a>
+
+Ранее, прочитав задание я уже определился, что буду использовать TeamCity, поэтому при развертывании инфраструктуры с помощью Terraform у меня уже есть 2 ВМ для `teamcity-server` и `teamcity-agent`.  
+Использование образов, оптимизированных для использования Docker, обусловлено тем, что для работы агентов Teamcity необходим демон Docker для сборки образов на основе Dockerfile и отправки их в регистр. В образах, оптимизированных для запуска Docker-контейнеров демон Docker уже установлен.  
+Установка TeamCity будет выполнена с помощью Ansible, для чего был создан еще один файл [deploy-teamcity.yaml](/diplom/ansible/playbooks/deploy-teamcity.yaml).  
+Также в качестве базы данных я установлю PostgreSQL, для чего создан файл [deploy-postgresql.yaml](/diplom/ansible/playbooks/deploy-postgresql.yaml).  
+
+Выполнив команды установки:  
+* `ansible-playbook -i inventory/hosts.yaml playbooks/deploy-postgresql.yaml`
+* `ansible-playbook -i inventory/hosts.yaml playbooks/deploy-teamcity.yaml`
+
+Логи видим достаточно большие, поэтому приводить здесь их не буду. Проверяем сервер TeamCity, пройдя по адресу [158.160.118.247:8111](http://158.160.118.247:8111), видим веб интерфейс:  
+![](/diplom/images/05/01-teamcity-installed.jpg)  
+Далее я зашел в настройки БД и указал параметры подключения, указанные в файле [deploy-postgresql.yaml](/diplom/ansible/playbooks/deploy-postgresql.yaml), также скачав драйвер JDBC, нажав соответствующую кнопку.
+Запустился процесс инициализации и создания базы данных. Далее появилось окно с лицензией, и в следующем окне создаем аккаунт администратора:  
+![](/diplom/images/05/02-teamcity-account.jpg)  
+Когда аккаунт администратора создан, мы попадаем на страницу приветствия, где уже можно создать проект:  
+![](/diplom/images/05/03-admin-is-created.jpg)  
+Но пока я этого делать не буду, т.к. нужно авторизовать агент. Поэтому переходим на соответствующую вкладку:  
+![](/diplom/images/05/04-agent-unautorized.jpg)  
+И авторизовываем агента:  
+![](/diplom/images/05/05-agent-autorized.jpg)  
+
+Теперь можно приступить к созданию проекта.

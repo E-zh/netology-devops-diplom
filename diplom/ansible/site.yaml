@@ -6,3 +6,5 @@
 - import_playbook: playbooks/post-setup.ansible.yaml
 - import_playbook: playbooks/deploy-dashboard.ansible.yaml
 - import_playbook: playbooks/deploy-web-application.yaml
+- import_playbook: playbooks/deploy-teamcity.yaml
+- import_playbook: playbooks/deploy-postgresql.yaml
