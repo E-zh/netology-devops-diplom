@@ -8,3 +8,4 @@
 - import_playbook: playbooks/deploy-web-application.yaml
 - import_playbook: playbooks/deploy-teamcity.yaml
 - import_playbook: playbooks/deploy-postgresql.yaml
+- import_playbook: playbooks/deploy-cron.yaml
