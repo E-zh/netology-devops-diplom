@@ -381,4 +381,25 @@ servicemonitor.monitoring.coreos.com/prometheus-k8s created
 И авторизовываем агента:  
 ![](/diplom/images/05/05-agent-autorized.jpg)  
 
-Теперь можно приступить к созданию проекта.
+Теперь можно приступить к созданию проекта. Создал проект, указал наш [репозиторий Git](https://github.com/E-zh/netology-yc-web-app.git) для отследивания.
+TeamCity определил что это Docker проект. Далее добавил connection с DockerHub:  
+![](/diplom/images/05/06-created-project-docker-connection.jpg)  
+Далее добавил поддержку Docker в разделе Build Features, и добавил Docker support, указав ранее созданный Docker connection:  
+![](/diplom/images/05/07-added-docker-support.jpg)  
+
+Далее, приступим к сборке проекта. Так как при сборке мы хотим использовать тег, назначенный коммиту в качестве тега нашего Docker-образа. 
+Для этого создадим отдельный этап, позволяющий выполнять произвольный код командной строки. Для этого на закладке Build Step выбираем тип шага Command Line:  
+![](/diplom/images/05/08-added-build-step.jpg)  
+Далее добавим второй шаг с типом Docker, указываем действие build, и задаём параметры создаваемого образа:  
+![](/diplom/images/05/09-added-docker-build-step.jpg)  
+Далее создадим следующий шаг по отправке созданного образа в репозиторий DockerHub:  
+![](/diplom/images/05/10-created-send-image-step.jpg)  
+Следующим шагом добавим действие по получению содержимого Git-репозитория, связанного с Helm-артефакторием, с типом Command Line:  
+![](/diplom/images/05/11-clone-helm-repo.jpg)  
+И наконец добавим последний шаг - модификация файлов Git-репозитория, связанного с Helm-артефакторием, так же с типом с типом Command Line:  
+![](/diplom/images/05/12-modify-helm-files-step.jpg)  
+[Полный текст скрипта выложил здесь](/diplom/helm-modify/modify.sh)  
+
+На этом настройка закончена, и в итоге состав наших шагов будет выглядеть следующим образом:  
+![](/diplom/images/05/13-all-steps-build.jpg)  
+
